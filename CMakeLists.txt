@@ -15,10 +15,16 @@ cmake_dependent_option(PLUME_SDL_VULKAN_ENABLED "Enable SDL Vulkan integration" 
 cmake_dependent_option(PLUME_D3D12_AGILITY_SDK_ENABLED "Enable D3D12 Agility SDK" OFF WIN32 OFF)
 cmake_dependent_option(PLUME_APPLE_RETINA_ENABLED "Enable Apple Retina display support" ON APPLE ON)
 option(PLUME_BUILD_EXAMPLES "Build example applications" OFF)
+option(UWP "Build in UWP compatibility mode" OFF)
 
 # Windows-specific definitions
 if(WIN32)
     add_compile_definitions(NOMINMAX)
+endif()
+
+# UWP compat build
+if(UWP)
+    add_compile_definitions(_UWP_)
 endif()
 
 # Enable SDL Vulkan support
