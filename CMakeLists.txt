@@ -14,10 +14,16 @@ include(CMakeDependentOption)
 cmake_dependent_option(SDL_VULKAN_ENABLED "Enable SDL Vulkan integration" OFF IS_LINUX OFF)
 cmake_dependent_option(D3D12_AGILITY_SDK_ENABLED "Enable D3D12 Agility SDK" OFF WIN32 OFF)
 option(PLUME_BUILD_EXAMPLES "Build example applications" OFF)
+option(UWP "Build in UWP compatibility mode" OFF)
 
 # Windows-specific definitions
 if(WIN32)
     add_compile_definitions(NOMINMAX)
+endif()
+
+# UWP compat build
+if(UWP)
+    add_compile_definitions(_UWP_)
 endif()
 
 # Enable SDL Vulkan support

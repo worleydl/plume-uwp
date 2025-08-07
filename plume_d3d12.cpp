@@ -35,8 +35,16 @@
 #endif
 
 extern "C" {
+#ifdef D3D12_AGILITY_SDK_ENABLED
     __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION;
     __declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";
+#endif
+
+#ifdef _UWP_
+    // Link against libuwp or implement these yourself in the final exe
+    __declspec(dllimport) void  uwp_GetScreenSize(int* x, int* y);
+    __declspec(dllimport) void* uwp_GetWindowReference();
+#endif
 }
 
 namespace plume {
@@ -1338,17 +1346,23 @@ namespace plume {
 
         IDXGISwapChain1 *swapChain1;
         IDXGIFactory4 *dxgiFactory = commandQueue->device->renderInterface->dxgiFactory;
+#ifndef _UWP_
         HRESULT res = dxgiFactory->CreateSwapChainForHwnd(commandQueue->d3d, renderWindow, &swapChainDesc, nullptr, nullptr, &swapChain1);
+#else
+        HRESULT res = dxgiFactory->CreateSwapChainForCoreWindow(commandQueue->d3d, static_cast<IUnknown*>(uwp_GetWindowReference()), &swapChainDesc, nullptr, &swapChain1);
+#endif
         if (FAILED(res)) {
             fprintf(stderr, "CreateSwapChainForHwnd failed with error code 0x%lX.\n", res);
             return;
         }
 
+#ifndef _UWP_
         res = dxgiFactory->MakeWindowAssociation(renderWindow, DXGI_MWA_NO_ALT_ENTER);
         if (FAILED(res)) {
             fprintf(stderr, "MakeWindowAssociation failed with error code 0x%lX.\n", res);
             return;
         }
+#endif
 
         d3d = static_cast<IDXGISwapChain3 *>(swapChain1);
         d3d->SetMaximumFrameLatency(maxFrameLatency);
@@ -1408,7 +1422,12 @@ namespace plume {
             textures[i].d3d = nullptr;
         }
 
+#ifndef _UWP_
         HRESULT res = d3d->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
+#else
+        // Dimension inference fails on UWP, pass in the WxH from the core window
+        HRESULT res = d3d->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
+#endif
         if (FAILED(res)) {
             fprintf(stderr, "ResizeBuffers failed with error code 0x%lX.\n", res);
             return false;
@@ -1441,10 +1460,18 @@ namespace plume {
     }
 
     void D3D12SwapChain::getWindowSize(uint32_t &dstWidth, uint32_t &dstHeight) const {
+#ifndef _UWP_
         RECT rect;
         GetClientRect(renderWindow, &rect);
         dstWidth = rect.right - rect.left;
         dstHeight = rect.bottom - rect.top;
+#else
+        int x, y;
+        // libuwp is tailored to xbox environments, if you hit an error here hardcode or utilize method above
+        uwp_GetScreenSize(&x, &y);
+        dstWidth = static_cast<uint32_t>(x);
+        dstHeight = static_cast<uint32_t>(y);
+#endif
     }
 
     void D3D12SwapChain::setTextures() {

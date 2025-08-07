@@ -3,16 +3,33 @@ set(CMAKE_CXX_STANDARD 17)
 # Enable SDL Vulkan integration
 set(SDL_VULKAN_ENABLED ON CACHE BOOL "Enable SDL Vulkan integration" FORCE)
 
-# Find SDL2 (required for examples)
-find_package(SDL2 REQUIRED)
+if(NOT UWP)
+    # Find SDL2 (required for examples)
+    find_package(SDL2 REQUIRED)
+else()
+    include(FetchContent)
+    FetchContent_Declare(
+        uwpdep
+        GIT_REPOSITORY https://github.com/worleydl/uwp-dep.git
+        GIT_TAG 8884b71dba77c129bb3a4f05db3b2f68fe763e55
+    )
+    FetchContent_MakeAvailable(uwpdep)
+    set(SDL2_LIBRARIES SDL2)
+endif()
 
 # Source files
 set(SOURCES
     main.cpp
 )
 
+
 # Create executable
-add_executable(plume_example ${SOURCES})
+if(NOT UWP)
+    add_executable(plume_example ${SOURCES})
+else()
+    # UWP build requires an additional project to be built separately, see the uwp folder
+    add_library(plume_example STATIC ${SOURCES})
+endif()
 
 # Link libraries and include directories
 target_link_libraries(plume_example PRIVATE plume ${SDL2_LIBRARIES})
