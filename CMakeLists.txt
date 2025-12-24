@@ -30,7 +30,7 @@ endif()
 
 # UWP compat build
 if(UWP)
-    add_compile_definitions(_UWP_)
+    add_compile_definitions(_UWP)
 endif()
 
 # Enable SDL Vulkan support
