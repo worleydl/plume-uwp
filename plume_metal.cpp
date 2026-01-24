@@ -3839,7 +3839,7 @@ namespace plume {
         capabilities.descriptorIndexing = true;
         capabilities.displayTiming = osVersion.majorVersion >= 12;
         capabilities.bufferDeviceAddress = osVersion.majorVersion >= 13 && mtl->supportsFamily(MTL::GPUFamilyApple3);
-        const bool supportsResidencySets = osVersion.majorVersion >= 15 && mtl->supportsFamily(MTL::GPUFamilyApple6);
+        const bool supportsResidencySets = false; //osVersion.majorVersion >= 15 && mtl->supportsFamily(MTL::GPUFamilyApple6);
 #endif
 
         useArgumentBuffersTier2 = mtl->argumentBuffersSupport() == MTL::ArgumentBuffersTier2;
